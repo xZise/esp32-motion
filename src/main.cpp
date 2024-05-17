@@ -18,12 +18,11 @@
 
 WiFiMulti wifiMulti;
 
+constexpr int onTimeSeconds = 10;
 constexpr int inPin = 23;
-constexpr int onTime = 1000 * 10;
+constexpr long checkTimeout = 1 * 1000;
 
-unsigned long nextSwitchOff;
-bool on;
-
+unsigned long nextCheck;
 
 void setup() {
 
@@ -34,8 +33,7 @@ void setup() {
 
   pinMode(inPin, INPUT);
 
-  nextSwitchOff = millis();
-  on = false;
+  nextCheck = millis();
 }
 
 /*
@@ -93,7 +91,7 @@ bool queryShelly(JsonDocument& doc, const char endpoint[]) {
 
 SwitchResult setSwitch(uint8_t switchId, bool on) {
   char endpoint[100];
-  sprintf(endpoint, "rpc/Switch.Set?id=%d&on=%s", switchId, on ? "true" : "false");
+  sprintf(endpoint, "rpc/Switch.Set?id=%d&on=%s&toggle_after=%d", switchId, on ? "true" : "false", onTimeSeconds);
 
   JsonDocument doc;
   if (queryShelly(doc, endpoint)) {
@@ -111,19 +109,17 @@ void loop() {
   Serial.printf("Movement: %s\n", movement ? "yes" : "no");
 
   unsigned long currentTime = millis();
-  if (movement) {
-    nextSwitchOff = currentTime + onTime;
-    if (!on) {
-      Serial.println("Switched on");
-      on = true;
-      setSwitch(0, on);
-    }
-  }
+  if (movement && currentTime > nextCheck) {
+    JsonDocument status;
+    if (queryShelly(status, "rpc/Switch.GetStatus?id=0")) {
+      bool switchedOn = status["output"];
+      bool switchedOnTimer = status["timer_started_at"] > 0;
 
-  if (on && currentTime > nextSwitchOff) {
-    Serial.println("Switched off");
-    on = false;
-    setSwitch(0, on);
+      if (!switchedOn || switchedOnTimer) {
+        setSwitch(0, true);
+      }
+      nextCheck = millis() + checkTimeout;
+    }
   }
 
   delay(100);
