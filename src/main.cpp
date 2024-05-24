@@ -18,8 +18,9 @@
 
 WiFiMulti wifiMulti;
 
+constexpr int output = 8;
 constexpr int onTimeSeconds = 10;
-constexpr int inPin = 23;
+constexpr int inPin = 4;
 constexpr long checkTimeout = 1 * 1000;
 
 unsigned long nextCheck;
@@ -31,6 +32,7 @@ void setup() {
 
   wifiMulti.addAP(SSID, password);
 
+  pinMode(output, OUTPUT);
   pinMode(inPin, INPUT);
 
   nextCheck = millis();
@@ -110,6 +112,7 @@ SwitchResult setSwitch(uint8_t switchId, bool on, int toggle_after) {
 
 void loop() {
   bool movement = digitalRead(inPin);
+  digitalWrite(output, movement ? HIGH : LOW);
   Serial.printf("Movement: %s\n", movement ? "yes" : "no");
 
   unsigned long currentTime = millis();
