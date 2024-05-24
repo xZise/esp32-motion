@@ -89,9 +89,13 @@ bool queryShelly(JsonDocument& doc, const char endpoint[]) {
   return httpCode == HTTP_CODE_OK;
 }
 
-SwitchResult setSwitch(uint8_t switchId, bool on) {
+SwitchResult setSwitch(uint8_t switchId, bool on, int toggle_after) {
   char endpoint[100];
-  sprintf(endpoint, "rpc/Switch.Set?id=%d&on=%s&toggle_after=%d", switchId, on ? "true" : "false", onTimeSeconds);
+  if (toggle_after > 0) {
+    sprintf(endpoint, "rpc/Switch.Set?id=%d&on=%s&toggle_after=%d", switchId, on ? "true" : "false", toggle_after);
+  } else {
+    sprintf(endpoint, "rpc/Switch.Set?id=%d&on=%s", switchId, on ? "true" : "false");
+  }
 
   JsonDocument doc;
   if (queryShelly(doc, endpoint)) {
@@ -116,7 +120,7 @@ void loop() {
       bool switchedOnTimer = status["timer_started_at"] > 0;
 
       if (!switchedOn || switchedOnTimer) {
-        setSwitch(0, true);
+        setSwitch(0, true, onTimeSeconds);
       }
       nextCheck = millis() + checkTimeout;
     }
