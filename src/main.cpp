@@ -18,7 +18,7 @@
 
 WiFiMulti wifiMulti;
 
-constexpr int output = 8;
+constexpr int output = LED_MOVEMENT;
 constexpr int onTimeSeconds = 10;
 constexpr int inPin = 4;
 constexpr long checkTimeout = 1 * 1000;
