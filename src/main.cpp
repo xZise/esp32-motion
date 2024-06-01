@@ -28,9 +28,9 @@ unsigned long nextCheck;
 void setup() {
 
   Serial.begin(115200);
-  Serial.printf("Connecting to %s", SSID);
+  Serial.printf("Connecting to %s", Secrets::SSID);
 
-  wifiMulti.addAP(SSID, password);
+  wifiMulti.addAP(Secrets::SSID, Secrets::password);
 
   pinMode(output, OUTPUT);
   pinMode(inPin, INPUT);
@@ -60,7 +60,7 @@ bool queryShelly(JsonDocument& doc, const char endpoint[]) {
   HTTPClient http;
 
   char url[100];
-  sprintf(url, "http://%s/%s", hostname, endpoint);
+  sprintf(url, "http://%s/%s", Secrets::hostname, endpoint);
 
   Serial.print("[HTTP] begin...\n");
   // configure traged server and url
