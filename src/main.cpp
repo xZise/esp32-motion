@@ -9,14 +9,11 @@
 #include <Arduino.h>
 
 #include <WiFi.h>
-#include <WiFiMulti.h>
 
 #include <HTTPClient.h>
 
 #include <ArduinoJson.h>
 
-
-WiFiMulti wifiMulti;
 
 constexpr int output = LED_MOVEMENT;
 constexpr int onTimeSeconds = 10;
@@ -34,13 +31,30 @@ unsigned long nextCheck;
 unsigned long nextEnable;
 
 void setup() {
+  pinMode(output, OUTPUT);
+  digitalWrite(output, true);
 
   Serial.begin(115200);
   Serial.printf("Connecting to %s", Secrets::SSID);
 
-  wifiMulti.addAP(Secrets::SSID, Secrets::password);
+  WiFi.begin(Secrets::SSID, Secrets::password);
+  bool flash = false;
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print('.');
+    digitalWrite(output, flash);
+    flash = !flash;
+  }
 
-  pinMode(output, OUTPUT);
+  Serial.print("\nWiFi Connected: ");
+  Serial.println(WiFi.localIP());
+  digitalWrite(output, false);
+  delay(100);
+  digitalWrite(output, true);
+  delay(100);
+  digitalWrite(output, false);
+  delay(1000);
+
   pinMode(inPin, INPUT);
 
   nextCheck = millis();
@@ -61,7 +75,7 @@ enum class SwitchResult {
 
 bool queryShelly(JsonDocument& doc, const char endpoint[]) {
   // wait for WiFi connection
-  if ((wifiMulti.run() != WL_CONNECTED)) {
+  if ((WiFi.status() != WL_CONNECTED)) {
     return false;
   }
 
