@@ -21,9 +21,17 @@ WiFiMulti wifiMulti;
 constexpr int output = LED_MOVEMENT;
 constexpr int onTimeSeconds = 10;
 constexpr int inPin = 4;
-constexpr long checkTimeout = 1 * 1000;
+
+// When it detects movements it checks every "checkTimeout" whether the light
+// should be switched on. When the light is switched on, it'll wait for
+// "enableTimeout" before it'll switch it on again. As long as "enableTimeout"
+// is less than "onTimeSeconds", it shouldn't cause it to "skip an update".
+constexpr unsigned long checkTimeout = 1 * 1000;
+// This value prevents retriggering, while the motion sensor is in "hold time"
+constexpr unsigned long enableTimeout = 5 * 1000;
 
 unsigned long nextCheck;
+unsigned long nextEnable;
 
 void setup() {
 
@@ -122,10 +130,13 @@ void loop() {
       bool switchedOn = status["output"];
       bool switchedOnTimer = status["timer_started_at"] > 0;
 
+      unsigned long timeout = checkTimeout;
       if (!switchedOn || switchedOnTimer) {
-        setSwitch(0, true, onTimeSeconds);
+        if (setSwitch(0, true, onTimeSeconds) != SwitchResult::Error) {
+          timeout = enableTimeout;
+        }
       }
-      nextCheck = millis() + checkTimeout;
+      nextCheck = millis() + timeout;
     }
   }
 
