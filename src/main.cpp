@@ -1,10 +1,9 @@
 /**
- * BasicHTTPClient.ino
+ * esp32-motion
  *
- *  Created on: 24.05.2015
- *
+ * Detects motion and switches a Shelly on.
  */
-#include "secrets.h"
+#include "config.hpp"
 
 #include <Arduino.h>
 
@@ -15,47 +14,35 @@
 #include <ArduinoJson.h>
 
 
-constexpr int output = LED_MOVEMENT;
-constexpr int onTimeSeconds = 10;
-constexpr int inPin = 4;
-
-// When it detects movements it checks every "checkTimeout" whether the light
-// should be switched on. When the light is switched on, it'll wait for
-// "enableTimeout" before it'll switch it on again. As long as "enableTimeout"
-// is less than "onTimeSeconds", it shouldn't cause it to "skip an update".
-constexpr unsigned long checkTimeout = 1 * 1000;
-// This value prevents retriggering, while the motion sensor is in "hold time"
-constexpr unsigned long enableTimeout = 5 * 1000;
-
 unsigned long nextCheck;
 unsigned long nextEnable;
 
 void setup() {
-  pinMode(output, OUTPUT);
-  digitalWrite(output, true);
+  pinMode(Config::movementLed, OUTPUT);
+  digitalWrite(Config::movementLed, true);
 
   Serial.begin(115200);
-  Serial.printf("Connecting to %s", Secrets::SSID);
+  Serial.printf("Connecting to %s", Config::SSID);
 
-  WiFi.begin(Secrets::SSID, Secrets::password);
+  WiFi.begin(Config::SSID, Config::password);
   bool flash = false;
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print('.');
-    digitalWrite(output, flash);
+    digitalWrite(Config::movementLed, flash);
     flash = !flash;
   }
 
   Serial.print("\nWiFi Connected: ");
   Serial.println(WiFi.localIP());
-  digitalWrite(output, false);
+  digitalWrite(Config::movementLed, false);
   delay(100);
-  digitalWrite(output, true);
+  digitalWrite(Config::movementLed, true);
   delay(100);
-  digitalWrite(output, false);
+  digitalWrite(Config::movementLed, false);
   delay(1000);
 
-  pinMode(inPin, INPUT);
+  pinMode(Config::movementInput, INPUT);
 
   nextCheck = millis();
 }
@@ -82,7 +69,7 @@ bool queryShelly(JsonDocument& doc, const char endpoint[]) {
   HTTPClient http;
 
   char url[100];
-  sprintf(url, "http://%s/%s", Secrets::hostname, endpoint);
+  sprintf(url, "http://%s/%s", Config::hostname, endpoint);
 
   Serial.print("[HTTP] begin...\n");
   // configure traged server and url
@@ -133,8 +120,8 @@ SwitchResult setSwitch(uint8_t switchId, bool on, int toggle_after) {
 }
 
 void loop() {
-  bool movement = digitalRead(inPin);
-  digitalWrite(output, movement ? HIGH : LOW);
+  bool movement = digitalRead(Config::movementInput);
+  digitalWrite(Config::movementLed, movement ? HIGH : LOW);
   Serial.printf("Movement: %s\n", movement ? "yes" : "no");
 
   unsigned long currentTime = millis();
@@ -144,10 +131,10 @@ void loop() {
       bool switchedOn = status["output"];
       bool switchedOnTimer = status["timer_started_at"] > 0;
 
-      unsigned long timeout = checkTimeout;
+      unsigned long timeout = Config::checkTimeout.milliseconds();
       if (!switchedOn || switchedOnTimer) {
-        if (setSwitch(0, true, onTimeSeconds) != SwitchResult::Error) {
-          timeout = enableTimeout;
+        if (setSwitch(0, true, Config::toggleAfter.seconds()) != SwitchResult::Error) {
+          timeout = Config::enableTimeout.milliseconds();
         }
       }
       nextCheck = millis() + timeout;

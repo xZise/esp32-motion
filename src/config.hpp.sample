@@ -1,0 +1,30 @@
+#include <stdint.h>
+#include "timespan.hpp"
+
+// Rename to "config.hpp" and change/fill in values
+namespace Config {
+
+constexpr char SSID[] = "";
+constexpr char password[] = "";
+
+// Hostname/IP of Shelly device
+constexpr char hostname[] = "";
+// Number of switch to be set
+constexpr uint8_t switchId = 0;
+// Number of seconds after which it toggles back off
+constexpr TimeSpan<uint32_t> toggleAfter = TimeSpan<uint32_t>::from_seconds(30);
+
+
+// When it detects movements it checks every "checkTimeout" whether the light
+// should be switched on. When the light is switched on, it'll wait for
+// "enableTimeout" before it'll switch it on again. As long as "enableTimeout"
+// is less than "onTimeSeconds", it shouldn't cause it to "skip an update".
+constexpr TimeSpan<unsigned long> checkTimeout = TimeSpan<unsigned long>::from_seconds(1);
+// This value prevents retriggering, while the motion sensor is in "hold time"
+constexpr TimeSpan<unsigned long> enableTimeout = TimeSpan<unsigned long>::from_seconds(5);
+
+// Pin which shows movement with an LED
+constexpr int movementLed = LED_MOVEMENT;
+// Pin which gets triggered by movement
+constexpr int movementInput = 4;
+}

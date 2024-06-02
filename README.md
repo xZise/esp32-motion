@@ -10,4 +10,4 @@ With the check before, it is possible to switch the lights permanently on withou
 Configuration
 -------------
 
-To configure this script, rename/copy the `secrets.h.sample` to `secrets.h` and fill the values. At the moment this script always triggers switch 0 of the Shelly device.
+To configure this script, rename/copy the `config.hpp.sample` to `config.hpp` and fill the values.
