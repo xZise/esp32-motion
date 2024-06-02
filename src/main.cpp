@@ -127,13 +127,15 @@ void loop() {
   unsigned long currentTime = millis();
   if (movement && currentTime > nextCheck) {
     JsonDocument status;
-    if (queryShelly(status, "rpc/Switch.GetStatus?id=0")) {
+    char endpoint[100];
+    sprintf(endpoint, "rpc/Switch.GetStatus?id=%d", Config::switchId);
+    if (queryShelly(status, endpoint)) {
       bool switchedOn = status["output"];
       bool switchedOnTimer = status["timer_started_at"] > 0;
 
       unsigned long timeout = Config::checkTimeout.milliseconds();
       if (!switchedOn || switchedOnTimer) {
-        if (setSwitch(0, true, Config::toggleAfter.seconds()) != SwitchResult::Error) {
+        if (setSwitch(Config::switchId, true, Config::toggleAfter.seconds()) != SwitchResult::Error) {
           timeout = Config::enableTimeout.milliseconds();
         }
       }
