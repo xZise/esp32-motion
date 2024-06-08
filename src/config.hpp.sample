@@ -20,7 +20,8 @@ constexpr TimeSpan<uint32_t> toggleAfter = TimeSpan<uint32_t>::from_seconds(30);
 // "enableTimeout" before it'll switch it on again. As long as "enableTimeout"
 // is less than "onTimeSeconds", it shouldn't cause it to "skip an update".
 constexpr TimeSpan<unsigned long> checkTimeout = TimeSpan<unsigned long>::from_seconds(1);
-// This value prevents retriggering, while the motion sensor is in "hold time"
+// This value prevents retriggering, while the motion sensor is in "hold time".
+// Is ignored when set to a lower value than checkTimeout.
 constexpr TimeSpan<unsigned long> enableTimeout = TimeSpan<unsigned long>::from_seconds(5);
 
 // Pin which shows movement with an LED

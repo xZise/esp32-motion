@@ -136,7 +136,7 @@ void loop() {
       unsigned long timeout = Config::checkTimeout.milliseconds();
       if (!switchedOn || switchedOnTimer) {
         if (setSwitch(Config::switchId, true, Config::toggleAfter.seconds()) != SwitchResult::Error) {
-          timeout = Config::enableTimeout.milliseconds();
+          timeout = std::max(timeout, Config::enableTimeout.milliseconds());
         }
       }
       nextCheck = millis() + timeout;
