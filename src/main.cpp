@@ -14,6 +14,9 @@
 #include <ArduinoJson.h>
 
 
+static_assert(Config::toggleAfter.milliseconds() > Config::checkTimeout.milliseconds()); 
+static_assert(Config::toggleAfter.milliseconds() > Config::enableTimeout.milliseconds()); 
+
 unsigned long nextCheck;
 unsigned long nextEnable;
 
